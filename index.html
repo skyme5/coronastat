@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta charset="utf-8" />
+    <title>India</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #india {
+        height: 600px;
+        width: 600px;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/datamaps/0.5.9/datamaps.ind.min.js"></script>
+    <div id="india"></div>
+    <select onchange="changeMap(this)">
+      <option value="total">Total</option>
+      <option value="cured">Cured</option>
+      <option value="death">Death</option>
+    </select>
+    <script>
+      function drawMap(colorMap) {
+        var width = 600;
+        var height = 600;
+        var india = new Datamap({
+          element: document.getElementById("india"),
+          scope: "india",
+          responsive: false,
+          fills: colorMap.fills,
+          data: colorMap.states,
+          geographyConfig: {
+            popupOnHover: true,
+            highlightOnHover: true,
+            borderColor: "#000000",
+            borderWidth: 0.5,
+            dataUrl:
+              "https://rawgit.com/Anujarya300/bubble_maps/master/data/geography-data/india.topo.json",
+            popupTemplate: function(geo, data) {
+              if (data == null) {
+                return `
+                <div class="hoverinfo">
+                <b>${geo.properties.name}</b>
+                <div>
+                  <b>Total: 0</b><br>
+                  <b>Cured: 0</b><br>
+                  <b>Death: 0</b>
+                </div>
+                </div>`;
+              } else {
+                return `
+                <div class="hoverinfo">
+                <b>${geo.properties.name}</b>
+                <div>
+                  <b>Total: ${data.info[0]}</b><br>
+                  <b>Cured: ${data.info[4]}</b><br>
+                  <b>Death:${data.info[6]}</b>
+                </div>
+                </div>`;
+              }
+            }
+          },
+          setProjection: function(element) {
+            var scale = 1100;
+            var projection = d3.geo
+              .mercator()
+              .center([78.9629, 23.5937])
+              .scale(scale)
+              .translate([
+                (scale * element.offsetWidth) / 3000,
+                (scale * element.offsetHeight) / 2400
+              ]);
+
+            var path = d3.geo.path().projection(projection);
+            return { path: path, projection: projection };
+          },
+          done: function() {
+            // plotData();
+          }
+        });
+        window.india = india;
+      }
+
+      function plotData() {
+        fetch("./corona_status.json")
+          .then(e => e.json())
+          .then(e => {
+            window.india.bubbles(e, {
+              popupTemplate: function(geo, data) {
+                return `
+                <div class="hoverinfo">
+                <b>${data.state}</b>
+                <div>
+                  <b>Total: ${data.info[0]}</b><br>
+                  <b>Cured: ${data.info[4]}</b><br>
+                  <b>Death:${data.info[6]}</b>
+                </div>
+                </div>`;
+              }
+            });
+          });
+      }
+
+      fetch("./corona_status.color.json")
+        .then(e => e.json())
+        .then(e => {
+          window.color = e;
+          var type = window.location.href.split("=").pop();
+          drawMap(e[type == null ? "total" : type]);
+        });
+
+      function changeMap(e) {
+        window.location.href =
+          window.location.href.split("?")[0] + "?type=" + e.value;
+      }
+
+      var type = window.location.href.split("=").pop();
+      document.querySelector("select").value = type == null ? "total" : type;
+
+      const INDIAN_STATES = {
+        AN: "Andaman & Nicobar Island",
+        AP: "Andhra Pradesh",
+        AR: "Arunanchal Pradesh",
+        AS: "Assam",
+        BR: "Bihar",
+        CH: "Chandigarh",
+        CT: "Chhattisgarh",
+        DD: "Daman & Diu",
+        DL: "NCT of Delhi",
+        DN: "Dadara & Nagar Havelli",
+        GA: "Goa",
+        GJ: "Gujarat",
+        HP: "Himachal Pradesh",
+        HR: "Haryana",
+        JH: "Jharkhand",
+        JK: "Jammu & Kashmir and Ladakh",
+        KA: "Karnataka",
+        KL: "Kerala",
+        LD: "Lakshadweep",
+        MH: "Maharashtra",
+        ML: "Meghalaya",
+        MN: "Manipur",
+        MP: "Madhya Pradesh",
+        MZ: "Mizoram",
+        NL: "Nagaland",
+        OD: "Odisha",
+        PB: "Punjab",
+        PY: "Puducherry",
+        RJ: "Rajasthan",
+        SK: "Sikkim",
+        TN: "Tamil Nadu",
+        TR: "Tripura",
+        TS: "Telangana",
+        UK: "Uttarakhand",
+        UP: "Uttar Pradesh",
+        WB: "West Bengal"
+      };
+    </script>
+  </body>
+</html>
