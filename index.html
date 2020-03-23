@@ -125,7 +125,7 @@
       }
 
       var type = window.location.href.split("=").pop();
-      document.querySelector("select").value = type == null ? "total" : type;
+      document.querySelector("select").value = type.length > 5 ? "total" : type;
 
       const INDIAN_STATES = {
         AN: "Andaman & Nicobar Island",
