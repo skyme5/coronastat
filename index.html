@@ -116,7 +116,7 @@
         .then(e => {
           window.color = e;
           var type = window.location.href.split("=").pop();
-          drawMap(e[type == null ? "total" : type]);
+          drawMap(e[type.length > 5 ? "total" : type]);
         });
 
       function changeMap(e) {
